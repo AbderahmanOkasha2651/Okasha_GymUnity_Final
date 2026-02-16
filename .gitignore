@@ -1,0 +1,79 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# =====================
+# Backend (FastAPI / Python)
+# =====================
+backend/.venv/
+backend/__pycache__/
+backend/app/__pycache__/
+*.pyc
+
+# Env secrets
+.env
+backend/.env
+
+# Database (SQLite)
+backend/*.db
+
+# =====================
+# Frontend build/cache
+# =====================
+.vite/
+.cache/
+coverage/
+*.tsbuildinfo
+
+# Vite/React outputs (احتياط)
+dist/
+dist-ssr/
+
+# =====================
+# Python caches (عام)
+# =====================
+__pycache__/
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# =====================
+# Backend runtime/outputs
+# =====================
+backend/.venv/
+backend/venv/
+backend/.pytest_cache/
+backend/.mypy_cache/
+backend/.ruff_cache/
+
+# =====================
+# OS / temp
+# =====================
+Thumbs.db
+
+# ignore heavy videos temporarily
+public/*.mp4
