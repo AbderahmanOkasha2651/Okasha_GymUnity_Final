@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { TeamSection } from '../../components/TeamSection';
+import CardSwap, { Card } from '../components/reactbits/CardSwap';
+import TextType from '../components/reactbits/TextType/TextType';
 
 const COMMUNITY_STATS = [
   {
@@ -174,7 +176,25 @@ export const Home: React.FC = () => {
           <p className="text-xs font-medium tracking-[0.45em] text-white/60 uppercase">
             GymUnity Platform
           </p>
-          <h1 className="mt-4 text-4xl font-semibold sm:text-5xl">Train smarter. Build together.</h1>
+          <h1 className="mt-4 text-4xl font-semibold sm:text-5xl">
+            <TextType
+              text={[
+                'Train smarter. Build together.',
+                'Stay consistent. See results.',
+                'AI-powered. Community-driven.',
+              ]}
+              as="span"
+              typingSpeed={60}
+              deletingSpeed={35}
+              pauseDuration={2500}
+              initialDelay={500}
+              loop={true}
+              showCursor={true}
+              cursorCharacter="|"
+              cursorClassName="text-white/40"
+              startOnVisible={true}
+            />
+          </h1>
           <p className="mt-4 max-w-xl text-sm text-white/70">
             Access programs, track progress, and join the community. Log in or create an
             account to get started.
@@ -331,36 +351,41 @@ export const Home: React.FC = () => {
           </div>
         </div>
 
-        <div className="relative mx-auto mt-10 grid max-w-6xl gap-8 lg:grid-cols-[0.8fr_1.2fr] items-stretch">
-          <div className="hidden lg:block overflow-hidden rounded-[28px]">
-            <img
-              src="/portrait-sports-man-sitting-fitness-ball.jpg"
-              alt="Athlete sitting on fitness ball"
-              className="h-full w-full object-cover"
-              loading="lazy"
-            />
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2">
+        <div className="relative mx-auto mt-16 flex max-w-6xl items-center justify-end" style={{ minHeight: '520px' }}>
+          <CardSwap
+            width={420}
+            height={320}
+            cardDistance={50}
+            verticalDistance={55}
+            delay={4000}
+            pauseOnHover={true}
+            skewAmount={4}
+            easing="elastic"
+          >
             {SOLUTION_CARDS.map((item) => {
               const Icon = item.Icon;
               return (
-                <div
-                  key={item.title}
-                  className="flex items-start gap-4 rounded-[26px] border border-black/5 bg-white/90 px-6 py-6 shadow-[0_12px_40px_rgba(15,18,22,0.08)] backdrop-blur-[2px]"
-                >
-                  <span
-                    className={`mt-1 inline-flex h-12 w-12 items-center justify-center rounded-full ${item.accent}`}
-                  >
-                    <Icon size={22} />
-                  </span>
-                  <div className="space-y-2 text-left">
-                    <p className="text-xl font-semibold text-[#1F1F1F]">{item.title}</p>
-                    <p className="text-sm leading-relaxed text-[#4A4038]">{item.description}</p>
+                <Card key={item.title}>
+                  <div className="flex h-full flex-col justify-between p-7">
+                    <div>
+                      <span
+                        className={`inline-flex h-12 w-12 items-center justify-center rounded-full ${item.accent}`}
+                      >
+                        <Icon size={22} />
+                      </span>
+                      <h3 className="mt-4 text-2xl font-bold text-[#1F1F1F]">{item.title}</h3>
+                      <p className="mt-2 text-sm leading-relaxed text-[#4A4038]">
+                        {item.description}
+                      </p>
+                    </div>
+                    <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-[#B07B63]">
+                      GymUnity Feature
+                    </p>
                   </div>
-                </div>
+                </Card>
               );
             })}
-          </div>
+          </CardSwap>
         </div>
       </section>
 
@@ -399,6 +424,6 @@ export const Home: React.FC = () => {
           </div>
         </div>
       </footer>
-    </div>
+    </div >
   );
 };

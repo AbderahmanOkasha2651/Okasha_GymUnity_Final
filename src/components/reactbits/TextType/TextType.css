@@ -1,0 +1,17 @@
+/* Scoped TextType styles */
+
+.rb-text-type {
+    display: inline-block;
+    white-space: pre-wrap;
+}
+
+.rb-text-type__cursor {
+    margin-left: 0.15rem;
+    display: inline-block;
+    opacity: 0.7;
+    font-weight: 300;
+}
+
+.rb-text-type__cursor--hidden {
+    display: none;
+}

@@ -499,7 +499,7 @@ export const AICoach: React.FC = () => {
           <textarea
             ref={textareaRef}
             rows={1}
-            className="w-full resize-none bg-transparent text-[15px] text-[#e8e0d8] placeholder-[#7a756e] outline-none leading-relaxed"
+            className="w-full resize-none bg-transparent text-[15px] text-[#e8e0d8] placeholder-[#7a756e] outline-none leading-relaxed coach-scroll overflow-y-hidden"
             placeholder="اكتب رسالتك هنا..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
