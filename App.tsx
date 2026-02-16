@@ -84,7 +84,7 @@ const App: React.FC = () => {
     ]);
   };
 
-  const hideNavbar = location.pathname === '/login';
+  const hideNavbar = location.pathname === '/login' || location.pathname === '/ai-coach';
 
   return (
     <main className="min-h-screen bg-black text-white">

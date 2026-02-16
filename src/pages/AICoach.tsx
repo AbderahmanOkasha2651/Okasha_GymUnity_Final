@@ -1,6 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ApiUser, BASE_URL } from '../lib/api';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  User, Settings, Plus, Send, Menu, X,
+  Dumbbell, Target, Activity, Heart, AlertTriangle, Flame,
+  Ruler, Weight, Calendar, Zap, MessageSquare, Search,
+  FolderOpen, PanelLeftClose
+} from 'lucide-react';
+import './AICoach.css';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -20,6 +28,7 @@ interface ChatMessage {
   content: string;
   follow_up_questions?: string[];
   meta?: { provider: string; model: string; used_rag: boolean };
+  timestamp?: number;
 }
 
 interface CoachChatResponse {
@@ -42,7 +51,6 @@ const readStoredUser = (): ApiUser | null => {
   }
 };
 
-/* User-scoped localStorage keys */
 const profileKey = (uid: string) => `ai_coach:${uid}:profile`;
 const convKey = (uid: string) => `ai_coach:${uid}:conversation_id`;
 const msgsKey = (uid: string) => `ai_coach:${uid}:messages`;
@@ -81,34 +89,6 @@ const profileComplete = (p: UserProfile): boolean =>
   !!(p.age && p.height_cm && p.weight_kg && p.activity_level && p.training_days);
 
 /* ------------------------------------------------------------------ */
-/*  Icons (inline SVG to avoid dependencies)                           */
-/* ------------------------------------------------------------------ */
-
-const SendIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 2L11 13" /><path d="M22 2L15 22L11 13L2 9L22 2Z" />
-  </svg>
-);
-
-const PlusIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-  </svg>
-);
-
-const UserIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-  </svg>
-);
-
-const SettingsIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-  </svg>
-);
-
-/* ------------------------------------------------------------------ */
 /*  Profile Modal                                                      */
 /* ------------------------------------------------------------------ */
 
@@ -122,37 +102,42 @@ const ProfileModal: React.FC<{
     setDraft((prev) => ({ ...prev, [key]: val }));
 
   const inputCls =
-    'mt-1.5 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30 transition';
+    'mt-1.5 w-full rounded-lg border border-[#4a453e] bg-[#3a352f] px-3 py-2.5 text-sm text-[#e8e0d8] placeholder-[#8a8278] outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30 transition';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#1e1e1e] p-6 shadow-2xl">
-        <h3 className="text-lg font-bold text-white">معلوماتك الشخصية</h3>
-        <p className="mt-1 text-xs text-white/40">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.2 }}
+        className="w-full max-w-md rounded-2xl border border-[#4a453e] bg-[#2f2b26] p-6 shadow-2xl mx-4"
+      >
+        <h3 className="text-lg font-semibold text-[#e8e0d8]">معلوماتك الشخصية</h3>
+        <p className="mt-1 text-xs text-[#8a8278]">
           هنستخدم البيانات دي علشان نخصصلك خطة مناسبة
         </p>
 
-        <div className="mt-5 space-y-4">
+        <div className="mt-5 space-y-4" dir="rtl">
           <label className="block">
-            <span className="text-xs font-medium text-white/50">العمر</span>
+            <span className="text-xs font-medium text-[#8a8278]">العمر</span>
             <input type="number" min={10} max={100} className={inputCls}
               value={draft.age ?? ''} onChange={(e) => set('age', Number(e.target.value))}
               placeholder="مثلاً: 25" />
           </label>
           <label className="block">
-            <span className="text-xs font-medium text-white/50">الطول (سم)</span>
+            <span className="text-xs font-medium text-[#8a8278]">الطول (سم)</span>
             <input type="number" min={100} max={250} className={inputCls}
               value={draft.height_cm ?? ''} onChange={(e) => set('height_cm', Number(e.target.value))}
               placeholder="مثلاً: 175" />
           </label>
           <label className="block">
-            <span className="text-xs font-medium text-white/50">الوزن (كجم)</span>
+            <span className="text-xs font-medium text-[#8a8278]">الوزن (كجم)</span>
             <input type="number" min={30} max={300} className={inputCls}
               value={draft.weight_kg ?? ''} onChange={(e) => set('weight_kg', Number(e.target.value))}
               placeholder="مثلاً: 80" />
           </label>
           <label className="block">
-            <span className="text-xs font-medium text-white/50">مستوى النشاط</span>
+            <span className="text-xs font-medium text-[#8a8278]">مستوى النشاط</span>
             <select className={inputCls} value={draft.activity_level ?? ''}
               onChange={(e) => set('activity_level', e.target.value)}>
               <option value="">اختر...</option>
@@ -162,13 +147,13 @@ const ProfileModal: React.FC<{
             </select>
           </label>
           <label className="block">
-            <span className="text-xs font-medium text-white/50">أيام التمرين / أسبوع</span>
+            <span className="text-xs font-medium text-[#8a8278]">أيام التمرين / أسبوع</span>
             <input type="number" min={1} max={7} className={inputCls}
               value={draft.training_days ?? ''} onChange={(e) => set('training_days', Number(e.target.value))}
               placeholder="مثلاً: 4" />
           </label>
           <label className="block">
-            <span className="text-xs font-medium text-white/50">إصابات (اختياري)</span>
+            <span className="text-xs font-medium text-[#8a8278]">إصابات (اختياري)</span>
             <textarea rows={2} className={inputCls}
               value={draft.injuries ?? ''} onChange={(e) => set('injuries', e.target.value)}
               placeholder="مثال: إصابة في الركبة اليمنى" />
@@ -177,17 +162,17 @@ const ProfileModal: React.FC<{
 
         <div className="mt-6 flex gap-3">
           <button
-            className="flex-1 rounded-xl bg-emerald-500 py-2.5 text-sm font-semibold text-white hover:bg-emerald-400 transition"
+            className="focus-ring flex-1 rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition cursor-pointer"
             onClick={() => onSave(draft)}>
             حفظ
           </button>
           <button
-            className="flex-1 rounded-xl border border-white/10 py-2.5 text-sm text-white/60 hover:bg-white/5 transition"
+            className="focus-ring flex-1 rounded-xl border border-[#4a453e] py-2.5 text-sm text-[#8a8278] hover:bg-[#3a352f] transition cursor-pointer"
             onClick={onClose}>
             إلغاء
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
@@ -200,6 +185,7 @@ export const AICoach: React.FC = () => {
   const navigate = useNavigate();
   const [currentUser] = React.useState<ApiUser | null>(() => readStoredUser());
   const uid = currentUser?.id != null ? String(currentUser.id) : 'anonymous';
+  const displayName = currentUser?.name?.trim() || 'يا بطل';
 
   const [messages, setMessages] = React.useState<ChatMessage[]>(() => loadMessages(uid));
   const [conversationId, setConversationId] = React.useState<string | null>(
@@ -212,21 +198,30 @@ export const AICoach: React.FC = () => {
   const [error, setError] = React.useState<string | null>(null);
   const [showProfileModal, setShowProfileModal] = React.useState(false);
   const [sidebarOpen, setSidebarOpen] = React.useState(true);
+  const [mobileDrawer, setMobileDrawer] = React.useState(false);
+  const [sidebarTab, setSidebarTab] = React.useState<'chat' | 'profile'>('chat');
   const scrollRef = React.useRef<HTMLDivElement | null>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
+  const userScrolledUp = React.useRef(false);
 
-  // Persist state changes (user-scoped)
+  // Persist
   React.useEffect(() => saveMessages(uid, messages), [messages, uid]);
   React.useEffect(() => {
     if (conversationId) localStorage.setItem(convKey(uid), conversationId);
   }, [conversationId, uid]);
 
-  // Auto-scroll
+  // Smart auto-scroll
   React.useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (scrollRef.current && !userScrolledUp.current) {
+      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
     }
   }, [messages, isLoading]);
+
+  const handleScroll = () => {
+    if (!scrollRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+    userScrolledUp.current = scrollHeight - scrollTop - clientHeight > 120;
+  };
 
   // Auto-resize textarea
   React.useEffect(() => {
@@ -235,6 +230,14 @@ export const AICoach: React.FC = () => {
       textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 200) + 'px';
     }
   }, [input]);
+
+  // Close drawer on desktop
+  React.useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    const handler = () => { if (mq.matches) setMobileDrawer(false); };
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   /* ---------- send message ---------- */
   const sendMessage = async (text: string) => {
@@ -245,40 +248,32 @@ export const AICoach: React.FC = () => {
     setInput('');
 
     const token = localStorage.getItem('access_token');
-    if (!token) {
-      navigate('/login');
-      return;
-    }
+    if (!token) { navigate('/login'); return; }
 
-    const userMsg: ChatMessage = { role: 'user', content: trimmed };
+    const userMsg: ChatMessage = { role: 'user', content: trimmed, timestamp: Date.now() };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
+    userScrolledUp.current = false;
 
     try {
-      const body: Record<string, unknown> = {
-        message: trimmed,
-        goal,
-        locale: 'ar',
-      };
+      const body: Record<string, unknown> = { message: trimmed, goal, locale: 'ar' };
       if (conversationId) body.conversation_id = conversationId;
       if (profileComplete(profile)) body.user_profile = profile;
 
       const response = await fetch(`${BASE_URL}/api/ai/coach/chat`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(body),
       });
 
       if (response.status === 401) {
         localStorage.removeItem('access_token');
         localStorage.removeItem('user');
+        setError('انتهت جلستك. سجّل دخول مرة أخرى.');
         navigate('/login');
         return;
       }
-
+      if (response.status >= 500) throw new Error('خطأ في السيرفر. جرب تاني بعد شوية.');
       if (!response.ok) {
         const detail = await response.text();
         throw new Error(detail || 'Failed to reach AI Coach.');
@@ -286,13 +281,13 @@ export const AICoach: React.FC = () => {
 
       const data = (await response.json()) as CoachChatResponse;
       setConversationId(data.conversation_id);
-      console.log('[AI Coach] meta:', data.meta);
 
       const assistantMsg: ChatMessage = {
         role: 'assistant',
         content: data.reply,
         follow_up_questions: data.follow_up_questions,
         meta: data.meta,
+        timestamp: Date.now(),
       };
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (err) {
@@ -306,10 +301,7 @@ export const AICoach: React.FC = () => {
 
   const handleSend = () => sendMessage(input);
   const handleKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
   const handleReset = () => {
@@ -326,202 +318,398 @@ export const AICoach: React.FC = () => {
     setShowProfileModal(false);
   };
 
-  const latestMeta = messages.length > 0 ? messages[messages.length - 1].meta : null;
+  const latestMeta = messages.length > 0
+    ? [...messages].reverse().find(m => m.meta)?.meta ?? null
+    : null;
+
+  const currentGoalLabel = GOALS.find(g => g.value === goal)?.labelAr || 'لياقة عامة';
+
+  /* ---------- Sidebar JSX ---------- */
+  const sidebarContent = (
+    <div className="flex flex-col h-full">
+      {/* Brand header */}
+      <div className="flex items-center justify-between px-4 pt-5 pb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600">
+            <Dumbbell size={16} className="text-white" />
+          </div>
+          <span className="text-[15px] font-semibold text-[#e8e0d8]">GymUnity</span>
+        </div>
+        <button
+          onClick={() => { setSidebarOpen(false); setMobileDrawer(false); }}
+          className="focus-ring rounded-lg p-1.5 text-[#8a8278] hover:text-[#e8e0d8] hover:bg-white/5 transition cursor-pointer"
+          aria-label="Close sidebar"
+        >
+          <PanelLeftClose size={18} />
+        </button>
+      </div>
+
+      {/* New chat */}
+      <div className="px-3 pb-2">
+        <button
+          onClick={handleReset}
+          className="sidebar-nav-item focus-ring"
+        >
+          <Plus size={18} />
+          <span>محادثة جديدة</span>
+        </button>
+      </div>
+
+      {/* Nav items */}
+      <div className="px-3 space-y-0.5">
+        <button
+          onClick={() => setSidebarTab('chat')}
+          className={`sidebar-nav-item focus-ring ${sidebarTab === 'chat' ? 'active' : ''}`}
+        >
+          <MessageSquare size={18} />
+          <span>المحادثات</span>
+        </button>
+        <button
+          onClick={() => setSidebarTab('profile')}
+          className={`sidebar-nav-item focus-ring ${sidebarTab === 'profile' ? 'active' : ''}`}
+        >
+          <User size={18} />
+          <span>الملف الشخصي</span>
+        </button>
+        <button
+          onClick={() => setShowProfileModal(true)}
+          className="sidebar-nav-item focus-ring"
+        >
+          <Settings size={18} />
+          <span>الإعدادات</span>
+        </button>
+      </div>
+
+      {/* Separator */}
+      <div className="mx-4 my-3 border-t border-[#3a352f]" />
+
+      {/* Scrollable section */}
+      <div className="flex-1 overflow-y-auto coach-scroll px-3">
+        {sidebarTab === 'profile' ? (
+          /* Profile details */
+          <div className="space-y-3 px-1" dir="rtl">
+            <div className="text-[10px] font-semibold uppercase tracking-widest text-[#6a6560] mb-3">
+              بياناتك
+            </div>
+            {profileComplete(profile) ? (
+              <div className="space-y-3">
+                {([
+                  [<Calendar size={14} />, 'العمر', profile.age],
+                  [<Ruler size={14} />, 'الطول', `${profile.height_cm} سم`],
+                  [<Weight size={14} />, 'الوزن', `${profile.weight_kg} كجم`],
+                  [<Activity size={14} />, 'النشاط', profile.activity_level],
+                  [<Zap size={14} />, 'أيام التمرين', profile.training_days],
+                ] as [React.ReactNode, string, string | number | undefined][]).map(([icon, label, val]) => (
+                  <div key={label} className="flex items-center gap-3 text-[13px]">
+                    <span className="text-[#6a6560]">{icon}</span>
+                    <span className="text-[#8a8278]">{label}</span>
+                    <span className="text-[#e8e0d8] mr-auto">{val}</span>
+                  </div>
+                ))}
+                {profile.injuries && (
+                  <div className="flex items-center gap-3 text-[13px]">
+                    <span className="text-[#6a6560]"><AlertTriangle size={14} /></span>
+                    <span className="text-[#8a8278]">إصابات</span>
+                    <span className="text-[#e8e0d8] mr-auto">{profile.injuries}</span>
+                  </div>
+                )}
+                <button
+                  onClick={() => setShowProfileModal(true)}
+                  className="focus-ring mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-[#3a352f] py-2 text-[12px] text-[#8a8278] hover:bg-white/5 hover:text-[#e8e0d8] transition cursor-pointer"
+                >
+                  <Settings size={13} />
+                  تعديل البيانات
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowProfileModal(true)}
+                className="focus-ring flex w-full items-center gap-3 rounded-xl border border-dashed border-emerald-600/30 bg-emerald-600/5 px-3 py-3.5 text-xs text-emerald-400/70 hover:bg-emerald-600/10 hover:text-emerald-400 transition cursor-pointer"
+              >
+                <User size={16} />
+                <span>أضف بياناتك للحصول على خطة مخصصة</span>
+              </button>
+            )}
+
+            {/* Goal */}
+            <div className="mt-4">
+              <div className="text-[10px] font-semibold uppercase tracking-widest text-[#6a6560] mb-2">
+                الهدف
+              </div>
+              <select
+                className="focus-ring w-full rounded-lg border border-[#3a352f] bg-[#2a2622] px-3 py-2 text-[13px] text-[#e8e0d8] outline-none cursor-pointer"
+                value={goal}
+                onChange={(e) => setGoal(e.target.value)}
+                aria-label="اختر هدفك"
+              >
+                {GOALS.map((g) => (
+                  <option key={g.value} value={g.value}>{g.labelAr}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        ) : (
+          /* Recents */
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-widest text-[#6a6560] px-1 mb-2">
+              المحادثات الأخيرة
+            </div>
+            {messages.length > 0 ? (
+              <div className="space-y-0.5">
+                <div className="sidebar-nav-item text-[13px]" style={{ cursor: 'default' }}>
+                  <MessageSquare size={15} className="text-[#6a6560]" />
+                  <span className="truncate" dir="rtl">
+                    {messages[0]?.content?.substring(0, 40)}...
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-[12px] text-[#6a6560] px-1" dir="rtl">لا توجد محادثات بعد</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* User section at bottom */}
+      <div className="border-t border-[#3a352f] px-3 py-3">
+        <div className="flex items-center gap-3 px-1">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600/20 text-[13px] font-semibold text-emerald-400">
+            {displayName.charAt(0).toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] text-[#e8e0d8] truncate">{displayName}</p>
+            {latestMeta && (
+              <p className="text-[10px] text-[#6a6560] flex items-center gap-1">
+                <span className={`inline-block h-1.5 w-1.5 rounded-full ${latestMeta.provider === 'groq' ? 'bg-emerald-400' : 'bg-yellow-400'}`} />
+                {latestMeta.provider === 'groq' ? 'Groq' : 'Stub'} • {latestMeta.model}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  /* ---------- Input Box Component ---------- */
+  const inputBox = (
+    <div className="w-full max-w-[680px] mx-auto px-4">
+      <div className="rounded-2xl border border-[#3a352f] bg-[#1a1816] overflow-hidden shadow-lg">
+        {/* Text area */}
+        <div className="px-4 pt-3 pb-2">
+          <textarea
+            ref={textareaRef}
+            rows={1}
+            className="w-full resize-none bg-transparent text-[15px] text-[#e8e0d8] placeholder-[#7a756e] outline-none leading-relaxed"
+            placeholder="اكتب رسالتك هنا..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            style={{ maxHeight: '200px' }}
+            aria-label="رسالة للمدرب الذكي"
+            dir="rtl"
+          />
+        </div>
+
+        {/* Bottom bar */}
+        <div className="flex items-center justify-between px-3 pb-2.5">
+          <div className="flex items-center gap-1">
+            <button
+              className="focus-ring rounded-lg p-2 text-[#7a756e] hover:text-[#e8e0d8] hover:bg-white/5 transition cursor-pointer"
+              aria-label="إضافة مرفق"
+              onClick={() => setSidebarTab('profile')}
+            >
+              <Plus size={18} />
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Model badge */}
+            <span className="hidden sm:inline text-[11px] text-[#6a6560] px-2 py-1 rounded-md bg-white/[0.03]">
+              {currentGoalLabel}
+            </span>
+            <button
+              onClick={handleSend}
+              disabled={isLoading || !input.trim()}
+              className="focus-ring flex h-8 w-8 items-center justify-center rounded-lg bg-[#e8e0d8] text-[#2a2622] hover:bg-white disabled:opacity-20 transition cursor-pointer"
+              aria-label="إرسال"
+            >
+              <Send size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Disclaimer */}
+      <p className="mt-2.5 text-center text-[11px] text-[#5a5550]">
+        GymUnity AI Coach — هذه نصائح عامة وليست نصيحة طبية
+      </p>
+    </div>
+  );
 
   /* ---------------------------------------------------------------- */
   /*  Render                                                           */
   /* ---------------------------------------------------------------- */
   return (
-    <div className="fixed inset-0 flex bg-[#0d0d0d] text-white">
+    <div className="fixed inset-0 flex bg-[#2f2b26] text-[#e8e0d8]">
 
-      {/* ============== SIDEBAR ============== */}
+      {/* ============== DESKTOP SIDEBAR ============== */}
       <div
-        className={`flex-shrink-0 flex flex-col border-r border-white/[0.06] bg-[#141414] transition-all duration-300 ${sidebarOpen ? 'w-[260px]' : 'w-0 overflow-hidden'
+        className={`hidden md:flex flex-shrink-0 flex-col bg-[#2a2622] transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-[220px]' : 'w-0 overflow-hidden'
           }`}
       >
-        {/* Sidebar header */}
-        <div className="flex items-center justify-between px-4 py-4">
-          <span className="text-sm font-semibold text-white/80 truncate">GymUnity Coach</span>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="rounded-md p-1 text-white/40 hover:text-white hover:bg-white/5 transition"
-            title="إغلاق القائمة"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
-          </button>
-        </div>
-
-        {/* New chat button */}
-        <div className="px-3 pb-3">
-          <button
-            onClick={handleReset}
-            className="flex w-full items-center gap-2 rounded-lg border border-white/[0.08] px-3 py-2.5 text-sm text-white/70 hover:bg-white/5 transition"
-          >
-            <PlusIcon />
-            <span>محادثة جديدة</span>
-          </button>
-        </div>
-
-        {/* Separator */}
-        <div className="mx-3 border-t border-white/[0.06]" />
-
-        {/* Profile section */}
-        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
-          <div className="text-[10px] font-semibold uppercase tracking-widest text-white/25 px-1">
-            الملف الشخصي
-          </div>
-
-          {profileComplete(profile) ? (
-            <div className="space-y-2 rounded-lg bg-white/[0.03] p-3">
-              {[
-                ['العمر', profile.age],
-                ['الطول', `${profile.height_cm} سم`],
-                ['الوزن', `${profile.weight_kg} كجم`],
-                ['النشاط', profile.activity_level],
-                ['أيام التمرين', profile.training_days],
-              ].map(([label, val]) => (
-                <div key={String(label)} className="flex justify-between text-xs">
-                  <span className="text-white/30">{label}</span>
-                  <span className="text-white/70">{val}</span>
-                </div>
-              ))}
-              {profile.injuries && (
-                <div className="flex justify-between text-xs">
-                  <span className="text-white/30">إصابات</span>
-                  <span className="text-white/70">{profile.injuries}</span>
-                </div>
-              )}
-              <button
-                className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-md border border-white/[0.08] py-1.5 text-[11px] text-white/40 hover:text-white/70 hover:bg-white/5 transition"
-                onClick={() => setShowProfileModal(true)}
-              >
-                <SettingsIcon />
-                تعديل البيانات
-              </button>
-            </div>
-          ) : (
-            <button
-              className="flex w-full items-center gap-2 rounded-lg border border-dashed border-emerald-500/30 bg-emerald-500/5 px-3 py-3 text-xs text-emerald-400/80 hover:bg-emerald-500/10 transition"
-              onClick={() => setShowProfileModal(true)}
-            >
-              <UserIcon />
-              أضف بياناتك للحصول على خطة مخصصة
-            </button>
-          )}
-
-          {/* Goal selector */}
-          <div>
-            <div className="text-[10px] font-semibold uppercase tracking-widest text-white/25 px-1 mb-2">
-              الهدف
-            </div>
-            <select
-              className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs text-white/70 outline-none focus:border-emerald-500/30 transition"
-              value={goal}
-              onChange={(e) => setGoal(e.target.value)}
-            >
-              {GOALS.map((g) => (
-                <option key={g.value} value={g.value}>{g.labelAr}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Sidebar footer — provider badge */}
-        <div className="border-t border-white/[0.06] px-4 py-3">
-          {latestMeta ? (
-            <div className="space-y-0.5 text-[10px] text-white/25">
-              <div className="flex items-center gap-1.5">
-                <span className={`inline-block h-1.5 w-1.5 rounded-full ${latestMeta.provider === 'groq' ? 'bg-emerald-400' : 'bg-yellow-400'}`} />
-                <span>{latestMeta.provider === 'groq' ? 'Groq' : 'Stub'} • {latestMeta.model}</span>
-              </div>
-            </div>
-          ) : (
-            <div className="text-[10px] text-white/20">GymUnity AI Coach v2</div>
-          )}
-        </div>
+        {sidebarContent}
       </div>
+
+      {/* ============== MOBILE DRAWER ============== */}
+      <AnimatePresence>
+        {mobileDrawer && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="md:hidden fixed inset-0 z-40 bg-black/50"
+              onClick={() => setMobileDrawer(false)}
+            />
+            <motion.div
+              initial={{ x: -300 }}
+              animate={{ x: 0 }}
+              exit={{ x: -300 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              className="md:hidden fixed inset-y-0 left-0 z-50 w-[260px] flex flex-col bg-[#2a2622] shadow-2xl"
+            >
+              {sidebarContent}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* ============== MAIN AREA ============== */}
       <div className="flex flex-1 flex-col min-w-0">
 
-        {/* Top bar */}
-        <div className="flex items-center gap-3 border-b border-white/[0.06] px-4 py-3">
+        {/* Top bar — minimal */}
+        <div className="flex items-center px-4 py-3">
           {!sidebarOpen && (
             <button
-              onClick={() => setSidebarOpen(true)}
-              className="rounded-md p-1.5 text-white/40 hover:text-white hover:bg-white/5 transition"
-              title="فتح القائمة"
+              onClick={() => {
+                if (window.innerWidth >= 768) setSidebarOpen(true);
+                else setMobileDrawer(true);
+              }}
+              className="focus-ring rounded-lg p-2 text-[#7a756e] hover:text-[#e8e0d8] hover:bg-white/5 transition cursor-pointer mr-2"
+              aria-label="Open sidebar"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12h18M3 6h18M3 18h18" /></svg>
+              <Menu size={18} />
             </button>
           )}
-          <h1 className="text-sm font-medium text-white/60">GymUnity AI Coach 🏋️</h1>
+          {/* Mobile hamburger when sidebar is "open" but hidden on mobile */}
+          <button
+            onClick={() => setMobileDrawer(true)}
+            className="md:hidden focus-ring rounded-lg p-2 text-[#7a756e] hover:text-[#e8e0d8] hover:bg-white/5 transition cursor-pointer"
+            aria-label="Open menu"
+          >
+            <Menu size={18} />
+          </button>
+          <div className="flex-1" />
         </div>
 
-        {/* Messages area */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto">
+        {/* Content area */}
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto coach-scroll"
+        >
           {messages.length === 0 && !isLoading ? (
-            /* ---- Empty state (ChatGPT-style centered) ---- */
-            <div className="flex h-full flex-col items-center justify-center px-6">
-              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 border border-emerald-500/10">
-                <span className="text-3xl">🏋️</span>
-              </div>
-              <h2 className="text-2xl font-semibold text-white/80 mb-2">جاهز لما تكون جاهز</h2>
-              <p className="max-w-md text-center text-sm text-white/30 leading-relaxed">
-                اسألني عن خطة تمارين، نظام غذائي، أو أي حاجة تخص اللياقة البدنية.
-                <br />
-                ابدأ بمشاركة أهدافك! 💪
-              </p>
+            /* ============== EMPTY STATE (Claude style) ============== */
+            <div className="flex flex-col items-center justify-center h-full px-4">
+              {/* Greeting */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="text-center mb-8"
+              >
+                <h1 className="text-3xl md:text-4xl font-semibold text-[#e8e0d8] flex items-center justify-center gap-3 mb-3">
+                  <span className="text-emerald-400 text-4xl">✦</span>
+                  <span>أهلاً, {displayName}</span>
+                </h1>
+                <p className="text-[15px] text-[#7a756e]">كيف أقدر أساعدك النهاردة؟</p>
+              </motion.div>
 
-              {/* Quick-start chips */}
-              <div className="mt-8 flex flex-wrap justify-center gap-2 max-w-lg">
+              {/* Input box (centered like Claude) */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.15 }}
+                className="w-full max-w-[680px]"
+              >
+                {inputBox}
+              </motion.div>
+
+              {/* Quick suggestions below input (like Claude's "Connect tools") */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="mt-4 flex flex-wrap justify-center gap-2"
+              >
                 {[
                   'عايز أخس 10 كيلو',
                   'خطة تمرين 5 أيام',
-                  'نظام غذائي لبناء العضل',
-                  'تمارين للمبتدئين',
+                  'نظام غذائي للمبتدئين',
                 ].map((q) => (
                   <button
                     key={q}
-                    className="rounded-full border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-xs text-white/50 hover:bg-white/[0.06] hover:text-white/70 transition"
                     onClick={() => sendMessage(q)}
+                    className="focus-ring rounded-full border border-[#3a352f] bg-transparent px-4 py-2 text-[13px] text-[#8a8278] hover:bg-white/5 hover:text-[#e8e0d8] hover:border-[#4a453e] transition cursor-pointer"
                   >
                     {q}
                   </button>
                 ))}
-              </div>
+              </motion.div>
             </div>
           ) : (
-            /* ---- Messages ---- */
-            <div className="mx-auto max-w-3xl px-4 py-6 space-y-6">
-              {messages.map((msg, idx) => (
-                <div key={idx} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
-                  {/* Avatar for assistant */}
-                  {msg.role === 'assistant' && (
-                    <div className="mt-1 flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/10 border border-emerald-500/20 text-sm">
-                      🏋️
+            /* ============== MESSAGES ============== */
+            <div className="mx-auto max-w-[680px] px-4 py-6 space-y-6">
+              {messages.map((msg, idx) => {
+                const isUser = msg.role === 'user';
+                return (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="flex gap-3"
+                  >
+                    {/* Avatar */}
+                    <div className="mt-1 flex-shrink-0">
+                      {isUser ? (
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600/20 text-[11px] font-semibold text-emerald-400">
+                          {displayName.charAt(0).toUpperCase()}
+                        </div>
+                      ) : (
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600">
+                          <Dumbbell size={14} className="text-white" />
+                        </div>
+                      )}
                     </div>
-                  )}
 
-                  <div className={`max-w-[80%] ${msg.role === 'user' ? '' : ''}`}>
-                    <div
-                      className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${msg.role === 'user'
-                          ? 'bg-emerald-600/20 text-white/90 border border-emerald-500/10'
-                          : 'bg-white/[0.04] text-white/80 border border-white/[0.06]'
-                        }`}
-                    >
-                      <p className="whitespace-pre-wrap">{msg.content}</p>
-                    </div>
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[13px] font-semibold text-[#e8e0d8]">
+                          {isUser ? displayName : 'GymUnity Coach'}
+                        </span>
+                      </div>
+                      <div dir="rtl" className={isUser ? 'text-[15px] leading-[1.8] text-[#e8e0d8]/90 whitespace-pre-wrap' : 'ai-prose whitespace-pre-wrap'}>
+                        {msg.content}
+                      </div>
 
-                    {/* Follow-up question chips */}
-                    {msg.role === 'assistant' &&
-                      msg.follow_up_questions &&
-                      msg.follow_up_questions.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1.5">
+                      {/* Follow-up chips */}
+                      {!isUser && msg.follow_up_questions && msg.follow_up_questions.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-2" dir="rtl">
                           {msg.follow_up_questions.map((q, qIdx) => (
                             <button
                               key={qIdx}
-                              className="rounded-full border border-emerald-500/15 bg-emerald-500/5 px-3 py-1.5 text-[11px] text-emerald-400/70 hover:bg-emerald-500/10 hover:text-emerald-300 transition disabled:opacity-30"
+                              className="focus-ring rounded-full border border-[#3a352f] px-3.5 py-1.5 text-[12px] text-[#8a8278] hover:bg-white/5 hover:text-[#e8e0d8] hover:border-[#4a453e] transition cursor-pointer disabled:opacity-30"
                               onClick={() => sendMessage(q)}
                               disabled={isLoading}
                             >
@@ -530,28 +718,28 @@ export const AICoach: React.FC = () => {
                           ))}
                         </div>
                       )}
-                  </div>
-
-                  {/* Avatar for user */}
-                  {msg.role === 'user' && (
-                    <div className="mt-1 flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 border border-white/[0.08] text-xs font-semibold text-white/60">
-                      {currentUser?.name?.charAt(0)?.toUpperCase() || 'U'}
                     </div>
-                  )}
-                </div>
-              ))}
+                  </motion.div>
+                );
+              })}
 
-              {/* Loading indicator */}
+              {/* Loading */}
               {isLoading && (
-                <div className="flex gap-3">
-                  <div className="mt-1 flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/10 border border-emerald-500/20 text-sm">
-                    🏋️
+                <div className="flex gap-3 animate-fade-in">
+                  <div className="mt-1 flex-shrink-0 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600">
+                    <Dumbbell size={14} className="text-white" />
                   </div>
-                  <div className="rounded-2xl bg-white/[0.04] border border-white/[0.06] px-4 py-3">
-                    <div className="flex items-center gap-1">
-                      <span className="inline-block h-2 w-2 rounded-full bg-emerald-400/60 animate-pulse" />
-                      <span className="inline-block h-2 w-2 rounded-full bg-emerald-400/40 animate-pulse" style={{ animationDelay: '0.15s' }} />
-                      <span className="inline-block h-2 w-2 rounded-full bg-emerald-400/20 animate-pulse" style={{ animationDelay: '0.3s' }} />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[13px] font-semibold text-[#e8e0d8]">GymUnity Coach</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="inline-block h-2 w-2 rounded-full bg-[#8a8278] animate-bounce-dot" />
+                        <span className="inline-block h-2 w-2 rounded-full bg-[#7a756e] animate-bounce-dot" style={{ animationDelay: '0.15s' }} />
+                        <span className="inline-block h-2 w-2 rounded-full bg-[#6a6560] animate-bounce-dot" style={{ animationDelay: '0.3s' }} />
+                      </div>
+                      <span className="text-[12px] text-[#6a6560]">بيفكر...</span>
                     </div>
                   </div>
                 </div>
@@ -561,51 +749,45 @@ export const AICoach: React.FC = () => {
         </div>
 
         {/* Error */}
-        {error && (
-          <div className="mx-auto max-w-3xl w-full px-4 pb-2">
-            <div className="rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-2.5 text-xs text-red-300/80">
-              ⚠️ {error}
-            </div>
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="mx-auto max-w-[680px] w-full px-4 pb-2"
+            >
+              <div className="flex items-center justify-between rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2.5 text-xs text-red-300/90">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle size={14} />
+                  <span>{error}</span>
+                </div>
+                <button onClick={() => setError(null)} className="cursor-pointer p-1 hover:text-red-200 transition">
+                  <X size={14} />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Input area at bottom (only when there are messages) */}
+        {messages.length > 0 && (
+          <div className="pb-4 pt-2 safe-bottom">
+            {inputBox}
           </div>
         )}
-
-        {/* ---- Input area (ChatGPT style — centered bottom) ---- */}
-        <div className="border-t border-white/[0.04] bg-[#0d0d0d] px-4 py-4">
-          <div className="mx-auto max-w-3xl">
-            <div className="flex items-end gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 focus-within:border-emerald-500/20 transition">
-              <textarea
-                ref={textareaRef}
-                rows={1}
-                className="flex-1 resize-none bg-transparent text-sm text-white placeholder-white/25 outline-none"
-                placeholder="اكتب رسالتك هنا..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                style={{ maxHeight: '200px' }}
-              />
-              <button
-                onClick={handleSend}
-                disabled={isLoading || !input.trim()}
-                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-500 text-white hover:bg-emerald-400 disabled:opacity-20 disabled:hover:bg-emerald-500 transition"
-              >
-                <SendIcon />
-              </button>
-            </div>
-            <p className="mt-2 text-center text-[10px] text-white/20">
-              GymUnity AI Coach — هذه نصائح عامة وليست نصيحة طبية • Enter للإرسال
-            </p>
-          </div>
-        </div>
       </div>
 
       {/* Profile Modal */}
-      {showProfileModal && (
-        <ProfileModal
-          profile={profile}
-          onSave={handleSaveProfile}
-          onClose={() => setShowProfileModal(false)}
-        />
-      )}
+      <AnimatePresence>
+        {showProfileModal && (
+          <ProfileModal
+            profile={profile}
+            onSave={handleSaveProfile}
+            onClose={() => setShowProfileModal(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
