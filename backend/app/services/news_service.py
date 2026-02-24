@@ -458,32 +458,25 @@ def admin_delete_source(db: Session, source_id: int) -> None:
 
 
 def admin_fetch_now(db: Session) -> FetchNowResponse:
-    sources_enabled = db.query(NewsSource).filter(NewsSource.enabled.is_(True)).count()
-    now = datetime.utcnow()
+    from app.services.news_fetcher import fetch_news
+    result = fetch_news(db)
 
-    NEWS_STATUS.update(
-        {
-            'last_run': now,
-            'sources_checked': sources_enabled,
-            'sources_success': sources_enabled,
-            'sources_failed': 0,
-            'items_ingested': 0,
-            'last_error': None,
-        }
-    )
-
-    db.query(NewsSource).filter(NewsSource.enabled.is_(True)).update(
-        {NewsSource.last_fetched_at: now}
-    )
-    db.commit()
+    NEWS_STATUS.update({
+        'last_run': result['fetched_at'],
+        'sources_checked': result['sources_checked'],
+        'sources_success': result['sources_success'],
+        'sources_failed': result['sources_failed'],
+        'items_ingested': result['articles_new'],
+        'last_error': None,
+    })
 
     return FetchNowResponse(
-        fetched_at=now,
-        sources_checked=NEWS_STATUS['sources_checked'],
-        sources_success=NEWS_STATUS['sources_success'],
-        sources_failed=NEWS_STATUS['sources_failed'],
-        items_ingested=NEWS_STATUS['items_ingested'],
-        last_error=NEWS_STATUS['last_error'],
+        fetched_at=result['fetched_at'],
+        sources_checked=result['sources_checked'],
+        sources_success=result['sources_success'],
+        sources_failed=result['sources_failed'],
+        items_ingested=result['articles_new'],
+        last_error=None,
     )
 
 

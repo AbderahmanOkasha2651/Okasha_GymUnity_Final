@@ -23,6 +23,7 @@ from app.api.routes.ai_chat import router as ai_chat_router
 from app.api.routes.ai_coach_v2 import router as ai_coach_v2_router
 from app.api.routes.news import router as news_router
 from app.api.routes.admin_news import router as admin_news_router
+from app.api.routes.events import router as events_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -47,6 +48,20 @@ def on_startup():
     logger.info("  Selected provider: %s", provider.__class__.__name__)
     logger.info("=" * 50)
 
+    # ---- News pipeline scheduler ----
+    if settings.NEWS_PIPELINE_ENABLED:
+        from app.services.news_scheduler import start_news_scheduler
+        start_news_scheduler(app, interval_minutes=settings.NEWS_PIPELINE_INTERVAL_MINUTES)
+        logger.info("News scheduler started (every %d min)", settings.NEWS_PIPELINE_INTERVAL_MINUTES)
+    else:
+        logger.info("News scheduler DISABLED (NEWS_PIPELINE_ENABLED=false)")
+
+
+@app.on_event('shutdown')
+def on_shutdown():
+    from app.services.news_scheduler import stop_news_scheduler
+    stop_news_scheduler(app)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -62,3 +77,4 @@ app.include_router(ai_chat_router)
 app.include_router(ai_coach_v2_router)
 app.include_router(news_router)
 app.include_router(admin_news_router)
+app.include_router(events_router)

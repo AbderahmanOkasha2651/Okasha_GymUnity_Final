@@ -53,6 +53,19 @@ def get_personalized_feed(
     return news_service.get_feed(db, user, topic, source, q, from_date, to_date, page, page_size)
 
 
+@router.get('/news/recommended')
+def get_recommended_feed(
+    page: int = 1,
+    page_size: int = 12,
+    explain: bool = False,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Hybrid recommendation feed with vector search + topic + trending pools."""
+    from app.services.recommender import get_recommended_feed as recommend
+    return recommend(db, user_id=user.id, page=page, page_size=page_size, explain=explain)
+
+
 @router.get('/news/explore', response_model=NewsFeedResponse)
 def get_explore_feed(
     topic: str | None = None,

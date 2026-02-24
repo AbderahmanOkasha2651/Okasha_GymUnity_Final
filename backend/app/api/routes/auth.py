@@ -9,7 +9,7 @@ from app.schemas.user import UserOut
 
 router = APIRouter(tags=['auth'])
 
-ALLOWED_ROLES = {'user', 'seller', 'coach', 'admin'}
+ALLOWED_ROLES = {'user', 'seller', 'coach'}
 
 
 @router.post('/register', response_model=UserOut, status_code=status.HTTP_201_CREATED)

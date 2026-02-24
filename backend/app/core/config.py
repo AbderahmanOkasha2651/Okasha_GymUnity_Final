@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080
     NEWS_DATA_LAKE_PATH: str = './data/news'
     VECTOR_DB_URL: str = 'http://localhost:6333'
+    VECTOR_DB_PROVIDER: str = 'none'  # 'none' | 'chroma' | 'qdrant'
+    VECTOR_DB_PATH: str = './data/chroma'
     VECTOR_DB_NEWS_INDEX: str = 'gymunity-news'
     VECTOR_DB_USER_INDEX: str = 'gymunity-users'
     EMBEDDING_MODEL_NAME: str = 'sentence-transformers/all-MiniLM-L6-v2'

@@ -195,3 +195,29 @@ export const adminDeleteSource = (id: number) =>
 export const adminGetStatus = () => request<NewsStatus>('/admin/news/status');
 
 export const adminFetchNow = () => request<FetchNowResponse>('/admin/news/fetch-now', { method: 'POST' });
+
+
+// ---------------------------------------------------------------------------
+// Recommendation & event tracking
+// ---------------------------------------------------------------------------
+
+export interface EventItem {
+  article_id: number;
+  event_type: 'impression' | 'click' | 'save' | 'unsave' | 'hide' | 'unhide' | 'dwell';
+  dwell_seconds?: number;
+  session_id?: string;
+}
+
+export interface EventBatchResponse {
+  accepted: number;
+  duplicates_skipped: number;
+}
+
+export const sendEvents = (events: EventItem[]) =>
+  request<EventBatchResponse>('/news/events', {
+    method: 'POST',
+    body: JSON.stringify({ events }),
+  });
+
+export const getRecommendedFeed = (page = 1, pageSize = 12, explain = false) =>
+  request<NewsFeedResponse>(`/news/recommended?page=${page}&page_size=${pageSize}&explain=${explain}`);

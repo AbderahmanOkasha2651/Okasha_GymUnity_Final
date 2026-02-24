@@ -77,3 +77,6 @@ Thumbs.db
 
 # ignore heavy videos temporarily
 public/*.mp4
+
+# Vector DB local data
+backend/data/
