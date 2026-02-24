@@ -357,7 +357,7 @@ export const Home: React.FC = () => {
             height={320}
             cardDistance={50}
             verticalDistance={55}
-            delay={4000}
+            delay={2500}
             pauseOnHover={true}
             skewAmount={4}
             easing="elastic"
